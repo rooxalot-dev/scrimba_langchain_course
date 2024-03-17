@@ -10,9 +10,11 @@ const init = async () => {
     const resultText = await readFile(filePath, { encoding: 'utf8' });
     console.log('Original Text', resultText.length);
 
-    const textSplitter = new RecursiveCharacterTextSplitter();
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 500,
+    });
     const documentsOutput = await textSplitter.createDocuments([resultText]);
-    console.log('Documents Text Output', documentsOutput);
+    console.log('Documents Text Output', documentsOutput.length);
   } catch (error) {
     console.log('Error', error);
   }
