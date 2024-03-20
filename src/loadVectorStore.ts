@@ -1,11 +1,8 @@
 import { resolve } from 'path';
 import { readFile } from 'fs/promises';
-
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
-import { OpenAIEmbeddings } from '@langchain/openai';
 
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createSupabaseVectorStore } from './lib/supabaseVectorStoreFactory';
 
 export const loadVectorstore = async () => {
   const filePath = resolve(__dirname, '..', 'resources', 'scrimba-info.txt');
@@ -21,22 +18,8 @@ export const loadVectorstore = async () => {
 
     });
     const documentsOutput = await textSplitter.createDocuments([resultText]);
-
-    const openAIApiKey = process.env.OPENAI_API_KEY || '';
-    const openAIEmbeddingsAlgorithm = new OpenAIEmbeddings({ openAIApiKey });
-
-    const supabaseUrl = process.env.SUPABASE_API_URL || '';
-    const supabaseKey = process.env.SUPABASE_KEY || '';
-    const supabaseClient = createSupabaseClient(supabaseUrl, supabaseKey);
-
-    await SupabaseVectorStore.fromDocuments(
-      documentsOutput,
-      openAIEmbeddingsAlgorithm,
-      {
-        client: supabaseClient,
-        tableName: 'documents', // When we first configure supabase with Langchain, we created a table called "documents"
-      }
-    );
+    const supabaseVectorStore = createSupabaseVectorStore();
+    await supabaseVectorStore.addDocuments(documentsOutput)
 
     console.log('Supabase vectorstore loaded!');
   } catch (error) {
