@@ -1,8 +1,9 @@
 import { config } from 'dotenv';
-import { loadVectorstore } from './loadVectorStore';
-
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
+
+import { loadVectorstore } from './loadVectorStore';
+import { createSupabaseVectorStore } from './lib/supabaseVectorStoreFactory';
 
 const init = async () => {
   // Loads the vectorstore
@@ -18,10 +19,20 @@ const init = async () => {
   `);
   const standaloneQuestionChain = chatPromptTemplate.pipe(openAIChatModel);
   const questionAnswer = await standaloneQuestionChain.invoke({
-    question: 'What\'s the name of tool used to tighten bolts? I need to fix a few things in my house and it would be best to have everything in place before starting.'
+    question: 'What is a scrim? I have no idea since I am new at programming and could not find anything on the dictionary.'
   });
+  const standaloneQuestion = questionAnswer.content as string;
 
-  console.log('questionAnswer -> ', questionAnswer.content);
+  console.log('standaloneQuestion =>', standaloneQuestion);
+
+  const supabaseVectorStore = createSupabaseVectorStore();
+  /**
+   * Below is a quick example of how we can use Supabase as a similarity search tool, already taking
+   * into concerm the semantic meaning of the words, thorugh the vectors values.
+   *
+   * const foundVectors = await supabaseVectorStore.similaritySearchWithScore(standaloneQuestion);
+   * console.log('foundVectors', foundVectors);
+   */
 };
 
 config();
