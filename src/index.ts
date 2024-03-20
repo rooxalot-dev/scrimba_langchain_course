@@ -12,9 +12,9 @@ const init = async () => {
   const openAIApiKey = process.env.OPENAI_API_KEY || '';
   const openAIChatModel = new ChatOpenAI({ openAIApiKey });
   const chatPromptTemplate = ChatPromptTemplate.fromTemplate(`
-    Based on the user's question below, turn it in a standalone question. Don't explain anything, just return the standalone question.
-
-    {question}
+    Based on the user's question below, turn it in a standalone question.
+    Don't explain anything, just return the standalone question.
+    User's question: {question}
   `);
   const standaloneQuestionChain = chatPromptTemplate.pipe(openAIChatModel);
   const questionAnswer = await standaloneQuestionChain.invoke({
