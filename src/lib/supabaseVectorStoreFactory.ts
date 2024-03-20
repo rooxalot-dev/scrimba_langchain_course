@@ -1,9 +1,9 @@
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 
-import { supabaseClient } from "./../lib/supabaseClient";
+import { supabaseClient } from "./supabaseClient";
 
-export const supabaseVectorStore = async () => {
+export const createSupabaseVectorStore = () => {
   const openAIApiKey = process.env.OPENAI_API_KEY || '';
   const openAIEmbeddingsAlgorithm = new OpenAIEmbeddings({ openAIApiKey });
 
