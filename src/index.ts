@@ -11,6 +11,9 @@ const init = async () => {
   const shouldLoadVectorstore = (process.env.LOAD_VECTORSTORE || 'false').toLowerCase() === 'true';
   if (shouldLoadVectorstore) loadVectorstore();
 
+  const supabaseVectorStore = createSupabaseVectorStore();
+  const supabaseRetriever = supabaseVectorStore.asRetriever();
+
   const openAIApiKey = process.env.OPENAI_API_KEY || '';
   const openAIChatModel = new ChatOpenAI({ openAIApiKey });
   const standaloneChatPromptTemplate = ChatPromptTemplate.fromTemplate(`
@@ -18,21 +21,7 @@ const init = async () => {
     Don't explain anything, just return the standalone question.
     User's question: {question}
   `);
-  const standaloneQuestionChain = standaloneChatPromptTemplate.pipe(openAIChatModel);
-  const standaloneQuestionAnswer = await standaloneQuestionChain.invoke({
-    question: 'What is a scrim? I have no idea since I am new at programming and could not find anything on the dictionary.'
-  });
-  console.log('standaloneQuestion =>', standaloneQuestionAnswer.content);
 
-  const supabaseVectorStore = createSupabaseVectorStore();
-
-  // Below is a quick example of how we can use Supabase as a similarity search tool, already taking
-  // into concerm the semantic meaning of the words, thorugh the vectors values.
-  //
-  // const foundVectors = await supabaseVectorStore.similaritySearchWithScore(standaloneQuestion);
-  // console.log('foundVectors', foundVectors);
-
-  const supabaseRetriever = supabaseVectorStore.asRetriever();
   const standaloneQuestionRetrieveChain = standaloneChatPromptTemplate
     .pipe(openAIChatModel)
     .pipe(new StringOutputParser())
