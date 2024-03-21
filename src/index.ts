@@ -33,7 +33,8 @@ const init = async () => {
     User's question: {question}
   `);
 
-  const question = `What programming languages I can learn in here? I'm really new at this and I'm not sure I can follow...`;
+  //const question = `What programming languages I can learn in here? I'm really new at this and I'm not sure I can follow...`;
+  const question = `What's faster? A Opala or Godzilla?`;
 
   const standaloneQuestionVectorChain = standaloneChatPromptTemplate
     .pipe(openAIChatModel)
@@ -48,7 +49,7 @@ const init = async () => {
     .pipe(new StringOutputParser());
 
   const usersQuestionChain = await askQuestionChain.invoke({
-      context: standaloneQuestionVectorChainAnswer.join('\\n'),
+      context: standaloneQuestionVectorChainAnswer,
       question,
     })
 
