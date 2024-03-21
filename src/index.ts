@@ -5,6 +5,7 @@ import { StringOutputParser } from '@langchain/core/output_parsers';
 
 import { loadVectorstore } from './loadVectorStore';
 import { createSupabaseVectorStore } from './lib/supabaseVectorStoreFactory';
+import { DocumentContentOutputParser } from './custom/DocumentContentOutputParser';
 
 const init = async () => {
   // Loads the vectorstore
@@ -22,15 +23,39 @@ const init = async () => {
     User's question: {question}
   `);
 
-  const standaloneQuestionRetrieveChain = standaloneChatPromptTemplate
+  const chatPromptTemplate = ChatPromptTemplate.fromTemplate(`
+    Based on the context below and the user's question, return a friendly answer.
+    Only give answers based on the informed context, don't make anything up.
+    In case you don't know the answer for the question, please apologise and advise the user to send an email to "help@scrimba.com"
+
+    {context}
+
+    User's question: {question}
+  `);
+
+  const question = `What programming languages I can learn in here? I'm really new at this and I'm not sure I can follow...`;
+
+  const standaloneQuestionVectorChain = standaloneChatPromptTemplate
     .pipe(openAIChatModel)
     .pipe(new StringOutputParser())
-    .pipe(supabaseRetriever);
-  const standaloneQuestionRetrieveChainAnswer = await standaloneQuestionRetrieveChain.invoke({
-    question: 'What is a scrim? I have no idea since I am new at programming and could not find anything on the dictionary.'
-  });
+    .pipe(supabaseRetriever)
+    .pipe(DocumentContentOutputParser.parse);
 
-  console.log('standaloneQuestionRetrieveChainAnswer =>', standaloneQuestionRetrieveChainAnswer);
+  const standaloneQuestionVectorChainAnswer = await standaloneQuestionVectorChain.invoke({ question });
+
+  const askQuestionChain = chatPromptTemplate
+    .pipe(openAIChatModel)
+    .pipe(new StringOutputParser());
+
+  const usersQuestionChain = await askQuestionChain.invoke({
+      context: standaloneQuestionVectorChainAnswer.join('\\n'),
+      question,
+    })
+
+  console.log('answers =>', {
+    standaloneQuestionVectorChainAnswer,
+    usersQuestionChain,
+  });
 };
 
 config();
