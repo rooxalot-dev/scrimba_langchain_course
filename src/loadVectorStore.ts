@@ -13,7 +13,7 @@ export const loadVectorstore = async () => {
     const chunkSize = 500;
     const chunkOverlapSize = chunkSize * 0.10;
     const textSplitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 500,
+      chunkSize,
       chunkOverlap: chunkOverlapSize, // Configure how many characters from one chunk should appear in another (default: 200)
 
     });
