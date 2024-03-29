@@ -5,5 +5,5 @@ import { initRunnableSequenceDemoRoutine } from './routines/runnableSequenceDemo
 
 config();
 
-//initScrimbaChatbotRoutine();
-initRunnableSequenceDemoRoutine();
+initScrimbaChatbotRoutine();
+//initRunnableSequenceDemoRoutine();

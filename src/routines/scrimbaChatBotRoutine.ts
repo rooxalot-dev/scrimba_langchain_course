@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 
 import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { RunnableSequence, RunnablePassthrough } from '@langchain/core/runnables';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 
 import { loadVectorstore } from '../utils/loadVectorStore';
@@ -34,7 +35,7 @@ export const initScrimbaChatbotRoutine = async () => {
     User's question: {question}
   `);
 
-  const question = `What programming languages I can learn in here? I'm really new at this and I'm not sure I can follow...`;
+  const question = `How can I access Scrimba for? Does it requires me to install anything on my computer, because I don't have have enough space in it...`;
   console.log('Question => ', question);
 
   const standaloneQuestionVectorChain = standaloneChatPromptTemplate
@@ -43,19 +44,23 @@ export const initScrimbaChatbotRoutine = async () => {
     .pipe(supabaseRetriever)
     .pipe(DocumentContentOutputParser.parse);
 
-  const standaloneQuestionVectorChainAnswer = await standaloneQuestionVectorChain.invoke({ question });
-
   const askQuestionChain = chatPromptTemplate
     .pipe(openAIChatModel)
     .pipe(new StringOutputParser());
 
-  const usersQuestionChain = await askQuestionChain.invoke({
-      context: standaloneQuestionVectorChainAnswer,
-      question,
-    })
+  const sequenceChain = RunnableSequence.from([
+    {
+      originalQuestion: new RunnablePassthrough(),
+      context: standaloneQuestionVectorChain,
+    },
+    {
+      context: (prevResonse) => prevResonse.context,
+      question: ({ originalQuestion }) => originalQuestion.question,
+    },
+    askQuestionChain,
+  ]);
 
-  console.log('Answers =>', {
-    standaloneQuestionVectorChainAnswer,
-    usersQuestionChain,
-  });
+  const response = await sequenceChain.invoke({ question });
+
+  console.log('Answers =>', response);
 };
