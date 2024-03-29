@@ -2,7 +2,7 @@ import { resolve } from 'path';
 import { readFile } from 'fs/promises';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
-import { createSupabaseVectorStore } from './lib/supabaseVectorStoreFactory';
+import { createSupabaseVectorStore } from './supabaseVectorStoreFactory';
 
 export const loadVectorstore = async () => {
   const filePath = resolve(__dirname, '..', 'resources', 'scrimba-info.txt');
