@@ -1,5 +1,7 @@
-import { PromptTemplate } from "@langchain/core/prompts";
-import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from '@langchain/core/prompts';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { RunnableSequence } from '@langchain/core/runnables';
+import { ChatOpenAI } from '@langchain/openai';
 
 export const initRunnableSequenceDemoRoutine = async () => {
   // It reads the openai api key from .env automatically.
@@ -22,8 +24,31 @@ export const initRunnableSequenceDemoRoutine = async () => {
     translated sentence:
   `);
 
-  const response = chain.invoke({
-    sentence: 'i dont liked mondays',
+  const chain = RunnableSequence.from([
+    fixPunctuationTemplate,
+    openAIChatModel,
+    new StringOutputParser(),
+    (prevResponse) => {
+      console.log('puntuated_sentence => ', prevResponse);
+      return { puntuated_sentence: prevResponse };
+    },
+
+    fixGrammarTemplate,
+    openAIChatModel,
+    new StringOutputParser(),
+    (prevResponse) => {
+      console.log('fixed_sentence => ', prevResponse);
+      return { fixed_sentence: prevResponse };
+    },
+
+    translationTemplate,
+    openAIChatModel,
+  ]);
+
+  const response = await chain.invoke({
+    sentence: 'me dont liked mondays',
     language: 'french',
-  })
+  });
+
+  console.log('response => ', response);
 };
