@@ -14,7 +14,7 @@ export const initRunnableSequenceDemoRoutine = async () => {
   `);
   const fixGrammarTemplate = PromptTemplate.fromTemplate(`
     Given a sentence, correct its grammar.
-    sentence: {puntuated_sentence}
+    sentence: {punctuated_sentence}
     sentence with correct grammar:
   `);
   const translationTemplate = PromptTemplate.fromTemplate(`
@@ -24,29 +24,24 @@ export const initRunnableSequenceDemoRoutine = async () => {
     translated sentence:
   `);
 
-  const chain = RunnableSequence.from([
+  const fixPunctuationRunnableSequenceChain = RunnableSequence.from([
     fixPunctuationTemplate,
     openAIChatModel,
     new StringOutputParser(),
-    (prevResponse) => {
-      console.log('puntuated_sentence => ', prevResponse);
-      return { puntuated_sentence: prevResponse };
-    },
-
+  ]);
+  const fixGrammarRunnableSequenceChain = RunnableSequence.from([
     fixGrammarTemplate,
     openAIChatModel,
     new StringOutputParser(),
-    (prevResponse) => {
-      console.log('fixed_sentence => ', prevResponse);
-      return { fixed_sentence: prevResponse };
-    },
+  ]);
 
-    translationTemplate,
-    openAIChatModel,
+  const chain = RunnableSequence.from([
+    { punctuated_sentence: fixPunctuationRunnableSequenceChain },
+    { fixed_sentence: fixGrammarRunnableSequenceChain },
   ]);
 
   const response = await chain.invoke({
-    sentence: 'me dont liked mondays',
+    sentence: 'me dont liked the mondays',
     language: 'french',
   });
 
